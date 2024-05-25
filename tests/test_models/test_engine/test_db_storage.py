@@ -86,3 +86,54 @@ class TestFileStorage(unittest.TestCase):
     @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
     def test_save(self):
         """Test that save properly saves objects to file.json"""
+
+class TestDBStorage(unittest.TestCase):
+    """Test the DBStorage class"""
+    @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
+    def test_all_returns_dict(self):
+        """Test that all returns a dictionary"""
+        storage = DBStorage()
+        self.assertIs(type(storage.all()), dict)
+
+    @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
+    def test_new(self):
+        """test that new adds an object to the database"""
+        storage = DBStorage()
+        obj = State(name="California")
+        storage.new(obj)
+        storage.save()
+        self.assertIn(obj, storage.all(State).values())
+
+    @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
+    def test_save(self):
+        """Test that save properly saves objects to file.json"""
+        storage = DBStorage()
+        obj = State(name="California")
+        storage.new(obj)
+        storage.save()
+        self.assertIn(obj, storage.all(State).values())
+
+    @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
+    def test_get(self):
+        """Test the get method"""
+        storage = DBStorage()
+        state = State(name="Nevada")
+        storage.new(state)
+        storage.save()
+        self.assertEqual(storage.get(State, state.id), state)
+        self.assertIsNone(storage.get(State, "non-existent-id"))
+        storage.delete(state)
+        storage.save()
+
+    @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
+    def test_count(self):
+        """Test the count method"""
+        storage = DBStorage()
+        initial_count = storage.count()
+        state = State(name="Arizona")
+        storage.new(state)
+        storage.save()
+        self.assertEqual(storage.count(), initial_count + 1)
+        self.assertEqual(storage.count(State), initial_count + 1)
+        storage.delete(state)
+        storage.save()
